@@ -86,7 +86,7 @@ class FEM:
 
             """
             _,y=w.x
-            weak_form_drift=v*1*grad(u)[1]
+            weak_form_drift=v*0*grad(u)[1]
             return weak_form_drift
         T0=asm(drift,self.basis)
         L0 = asm(laplace1, self.basis, diffusivity=self.diffusivity())
@@ -129,13 +129,14 @@ class FEM:
         while self.t < self.t_max:
             #for ele in self.basis.get_dofs("l").nodal['u']:
                 #u[ele] = self.initial_temp
-
+            '''
+            Doing some tests here
+            '''
             t, u = t + self.dt, backsolve(self.assembly(1) @ u)
-            if t<=4:
-                for ele in self.basis.get_dofs("l").nodal['u']:
-                    u[ele] = self.initial_temp
-            else:
-                pass
+
+            for ele in self.basis.get_dofs("l").nodal['u']:
+                u[ele] = self.initial_temp
+
             yield t, u
 
     def simulate(self):
