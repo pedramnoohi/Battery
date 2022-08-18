@@ -86,7 +86,7 @@ class FEM:
 
             """
             _,y=w.x
-            weak_form_drift=v*0*grad(u)[1]
+            weak_form_drift=v*0.0001*grad(u)[1]
             return weak_form_drift
         T0=asm(drift,self.basis)
         L0 = asm(laplace1, self.basis, diffusivity=self.diffusivity())
