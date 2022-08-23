@@ -1,6 +1,6 @@
 
-from mesher import Mesh
-from fem_wrapper import FEM
+from battery_diffusion.solver.mesher import Mesh
+from battery_diffusion.solver.fem_wrapper import FEM
 from skimage.data import binary_blobs
 from nanomesh import Image
 #setup for the mesh
