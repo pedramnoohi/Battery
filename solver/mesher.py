@@ -58,10 +58,10 @@ class Mesh:
         lithium_list = np.array(lithium_list)
         lyte_list = np.array(lyte_list)
         m = MeshTri(p, t, _subdomains={"lithium": lithium_list, "electrolyte": lyte_list})
-        m = m.with_boundaries({"l": lambda x: x[1] == -1, "r": lambda x: x[0] == 1})
+        m = m.with_boundaries({"b": lambda x: x[1] == -1, "r": lambda x: x[0] == -0.505,"l": lambda x: x[0]==-1,"t":lambda x:x[1]==-0.505})
         return m
 
-    def basis(self)->skfem.assembly.basis.cell_basis.CellBasis:
+    def basis_laplace(self)->skfem.assembly.basis.cell_basis.CellBasis:
         """
         Generates cell basis for assembly of FEM
 
@@ -71,3 +71,15 @@ class Mesh:
         e=ElementTriP1()
         basis=Basis(self.skfem_mesher(),e)
         return basis
+    def basis_electrolyte(self)->skfem.assembly.basis.cell_basis.CellBasis:
+        """
+        Generates cell basis for assembly of FEM
+
+        Returns:
+            basis(skfem.assembly.basis.cell_basis.CellBasis):basis for assembly
+        """
+        e=ElementTriP1()
+        basis=Basis(self.skfem_mesher(),e,elements=self.skfem_mesher().subdomains["electrolyte"])
+        return basis
+
+

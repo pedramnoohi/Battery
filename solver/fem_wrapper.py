@@ -28,7 +28,7 @@ class FEM:
     '''
 
     def __init__(self, dt: float, t_max: float, initial_temp: float, mesh: skfem.mesh.mesh_tri_1.MeshTri1
-                 , basis: skfem.assembly.basis.cell_basis.CellBasis, Diffusivity_coefficient: dict):
+                 , basis: skfem.assembly.basis.cell_basis.CellBasis,basis2:skfem.assembly.basis.cell_basis.CellBasis, Diffusivity_coefficient: dict):
 
         self.Diffusivity_coefficient = Diffusivity_coefficient
         self.m = mesh
@@ -36,6 +36,7 @@ class FEM:
         self.dt = dt
         self.t_max = t_max
         self.initial_temp = initial_temp
+        self.basis2=basis2
 
     def diffusivity(self) -> np.ndarray:
         """
@@ -86,14 +87,19 @@ class FEM:
 
             """
             _,y=w.x
-            weak_form_drift=v*0.0001*grad(u)[1]
+            weak_form_drift=v*0.001*grad(u)[1]
             return weak_form_drift
-        T0=asm(drift,self.basis)
+        T0=asm(drift,self.basis2)
+
         L0 = asm(laplace1, self.basis, diffusivity=self.diffusivity())
         M0 = asm(mass, self.basis)
+
         theta = 0.5
         lhs = M0 + theta * (L0+T0) * self.dt
         rhs = M0 - (1 - theta) * (L0+T0) * self.dt
+        #temp=self.basis.ones()*10
+        #lhs,rhs=penalize(lhs,rhs,D=self.basis.get_dofs())
+        #lhs,rhs=enforce(lhs,rhs,x=50,)
         if type == 0:
             return lhs
         if type == 1:
@@ -106,10 +112,10 @@ class FEM:
             u_init(np.ndarray): array with each element being index of basis with correct initial condition depending on location
 
         """
-        u_init = np.zeros(len(self.basis.doflocs.prod(0)))
+        u_init = np.ones(len(self.basis.doflocs.prod(0)))*10
 
-        for ele in self.basis.get_dofs("l").nodal['u']:
-            u_init[ele] = self.initial_temp
+        for ele in self.basis.get_dofs("b").nodal['u']:
+            u_init[ele] = 100
         return u_init
 
     def frame(self, t: float,
@@ -129,15 +135,18 @@ class FEM:
         while self.t < self.t_max:
             #for ele in self.basis.get_dofs("l").nodal['u']:
                 #u[ele] = self.initial_temp
-            '''
-            Doing some tests here
-            '''
+
             t, u = t + self.dt, backsolve(self.assembly(1) @ u)
 
-            for ele in self.basis.get_dofs("l").nodal['u']:
-                u[ele] = self.initial_temp
+            if t<0.9:
+                #pass
+                for ele in self.basis.get_dofs("b").nodal['u']:
+                    u[ele] = self.initial_temp
+            else:
+                pass
 
             yield t, u
+
 
     def simulate(self):
         """
